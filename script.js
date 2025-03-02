@@ -3,8 +3,13 @@ const firebaseConfig = {
     databaseURL: "https://masina-1b9c4-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+// Initialize Firebase with error handling
+try {
+    firebase.initializeApp(firebaseConfig);
+    console.log("Firebase initialized successfully");
+} catch (error) {
+    console.error("Error initializing Firebase:", error);
+}
 const database = firebase.database();
 let selectedChore = '';
 
@@ -42,9 +47,14 @@ function determineNextPerson(chore) {
     const tarikCountElement = document.getElementById('tarikCount');
     const kemoCountElement = document.getElementById('kemoCount');
     
-    if (!nextPersonElement) return;
+    if (!nextPersonElement) {
+        console.error('Next person element not found');
+        return;
+    }
     
-    database.ref('entries').orderByChild('chore').equalTo(chore).once('value', (snapshot) => {
+    console.log(`Fetching entries for chore: ${chore}`);
+    database.ref('entries').orderByChild('chore').equalTo(chore).on('value', (snapshot) => {
+        console.log('Received snapshot:', snapshot.val());
         const entries = [];
         snapshot.forEach((childSnapshot) => {
             entries.push(childSnapshot.val());
@@ -87,36 +97,51 @@ function determineNextPerson(chore) {
         
         nextPersonElement.textContent = nextPerson;
         nextPersonElement.className = `next-person ${nextPerson.toLowerCase()}`; // This is correct
+    }, (error) => {
+        console.error(`Error fetching entries for ${chore}:`, error);
+        nextPersonElement.textContent = "Error loading data";
+        if (tarikCountElement) tarikCountElement.textContent = '-';
+        if (kemoCountElement) kemoCountElement.textContent = '-';
     });
 }
 
 // Display entries when page loads
 window.onload = function() {
+    console.log('Page loaded, pathname:', window.location.pathname);
     // Get the current page filename
     const currentPath = window.location.pathname;
     const pageName = currentPath.split('/').pop();
+    console.log('Current page name:', pageName);
     
     // Check if we're on a specific chore page using a more robust method
-    if (pageName === 'dishwasher.html' || currentPath.endsWith('/dishwasher.html')) {
+    if (pageName === 'dishwasher.html' || pageName.includes('dishwasher') || currentPath.endsWith('/dishwasher.html')) {
+        console.log('On dishwasher page, loading mašina data');
         determineNextPerson('mašina');
         displayChoreHistory('mašina');
-    } else if (pageName === 'grocery.html' || currentPath.endsWith('/grocery.html')) {
+    } else if (pageName === 'grocery.html' || pageName.includes('grocery') || currentPath.endsWith('/grocery.html')) {
+        console.log('On grocery page, loading granap data');
         determineNextPerson('granap');
         displayChoreHistory('granap');
     } else {
         // We're on the home page or index.html
+        console.log('On home page, loading all entries');
         displayEntries();
     }
 };
 
 function displayEntries() {
     const historyList = document.getElementById('historyList');
-    if (!historyList) return;
+    if (!historyList) {
+        console.error('History list element not found');
+        return;
+    }
     
     historyList.innerHTML = '<div class="loading">Loading...</div>';
+    console.log('Fetching recent entries for home page');
     
     // Changed from limitToLast(10) to limitToLast(5)
     database.ref('entries').orderByChild('timestamp').limitToLast(5).on('value', (snapshot) => {
+        console.log('Received home page snapshot:', snapshot.val());
         const entries = [];
         snapshot.forEach((childSnapshot) => {
             entries.unshift(childSnapshot.val());
@@ -133,6 +158,9 @@ function displayEntries() {
                 <span>${entry.date}</span>
             </div>
         `).join('');
+    }, (error) => {
+        console.error('Error fetching entries for home page:', error);
+        historyList.innerHTML = '<div class="no-entries">Error loading entries</div>';
     });
 }
 
