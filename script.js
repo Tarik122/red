@@ -11,6 +11,7 @@ window.onload = function() {
     console.log('Page loaded, pathname:', window.location.pathname);
     
     // Initialize Firebase first
+    // Ensure Firebase is initialized before any database operations
     if (!firebase.apps.length) {
         try {
             firebase.initializeApp(firebaseConfig);
@@ -76,6 +77,7 @@ function confirmChore(name, chore) {
     }
 }
 
+// Add error handling for database reads
 function determineNextPerson(chore) {
     const nextPersonElement = document.getElementById('nextPerson');
     const tarikCountElement = document.getElementById('tarikCount');
