@@ -5,7 +5,12 @@ const firebaseConfig = {
 
 // Initialize Firebase with error handling
 let database;
-function initializeFirebase() {
+
+// Initialize Firebase and set up the page
+window.onload = function() {
+    console.log('Page loaded, pathname:', window.location.pathname);
+    
+    // Initialize Firebase first
     if (!firebase.apps.length) {
         try {
             firebase.initializeApp(firebaseConfig);
@@ -16,25 +21,29 @@ function initializeFirebase() {
         }
     }
     database = firebase.database();
-}
-
-// Make sure Firebase is initialized before running any database operations
-document.addEventListener('DOMContentLoaded', () => {
-    initializeFirebase();
-    // Rest of your window.onload code here
+    
+    // Get the current page filename
     const currentPath = window.location.pathname;
     const pageName = currentPath.split('/').pop();
+    console.log('Current page name:', pageName);
     
+    // Check if we're on a specific chore page using a more robust method
     if (pageName === 'dishwasher.html' || pageName.includes('dishwasher') || currentPath.endsWith('/dishwasher.html')) {
+        console.log('On dishwasher page, loading mašina data');
         determineNextPerson('mašina');
         displayChoreHistory('mašina');
     } else if (pageName === 'grocery.html' || pageName.includes('grocery') || currentPath.endsWith('/grocery.html')) {
+        console.log('On grocery page, loading granap data');
         determineNextPerson('granap');
         displayChoreHistory('granap');
     } else {
+        // We're on the home page or index.html
+        console.log('On home page, loading all entries');
         displayEntries();
     }
-});
+};
+
+// Remove the DOMContentLoaded event listener since we're using window.onload
 
 let selectedChore = '';
 
