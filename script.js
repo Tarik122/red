@@ -94,11 +94,11 @@ function determineNextPerson(chore) {
 window.onload = function() {
     // Check if we're on a specific chore page
     if (window.location.pathname.includes('dishwasher.html')) {
-        determineNextPerson('dishwasher');
-        displayChoreHistory('dishwasher');
-    } else if (window.location.pathname.includes('granap.html')) {
-        determineNextPerson('grocery');
-        displayChoreHistory('grocery');
+        determineNextPerson('mašina');
+        displayChoreHistory('mašina');
+    } else if (window.location.pathname.includes('grocery.html')) {
+        determineNextPerson('granap');
+        displayChoreHistory('granap');
     } else {
         // We're on the home page
         displayEntries();
