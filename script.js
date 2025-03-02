@@ -93,12 +93,12 @@ function determineNextPerson(chore) {
 // Display entries when page loads
 window.onload = function() {
     // Check if we're on a specific chore page
-    if (window.location.pathname.includes('mašina.html')) {
-        determineNextPerson('mašina');
-        displayChoreHistory('mašina');
+    if (window.location.pathname.includes('dishwasher.html')) {
+        determineNextPerson('dishwasher');
+        displayChoreHistory('dishwasher');
     } else if (window.location.pathname.includes('granap.html')) {
-        determineNextPerson('granap');
-        displayChoreHistory('granap');
+        determineNextPerson('grocery');
+        displayChoreHistory('grocery');
     } else {
         // We're on the home page
         displayEntries();
