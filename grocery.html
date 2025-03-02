@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Granap</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <button class="back-button" onclick="goToHome()">
+        ←
+    </button>
+    <div class="container">
+        <h1>Granap</h1>
+        
+        <div class="next-person-container">
+            <h2>Sljedeći po redu:</h2>
+            <div class="next-person" id="nextPerson">Učitavanje...</div>
+            <div class="counts">
+                <div class="count">Tarik: <span id="tarikCount">0</span> ukupno</div>
+                <div class="count">Kemo: <span id="kemoCount">0</span> ukupno</div>
+            </div>
+        </div>
+        
+        <div class="buttons-container">
+            <button class="person-button tarik" onclick="confirmChore('Tarik', 'granap')">
+                Tarik
+            </button>
+            <button class="person-button kemo" onclick="confirmChore('Kemo', 'granap')">
+                Kemo
+            </button>
+        </div>
+
+        <div class="history-section">
+            <h2>Historija</h2>
+            <div id="choreHistory"></div>
+        </div>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
