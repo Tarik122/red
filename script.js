@@ -92,15 +92,19 @@ function determineNextPerson(chore) {
 
 // Display entries when page loads
 window.onload = function() {
-    // Check if we're on a specific chore page
-    if (window.location.pathname.includes('dishwasher.html')) {
+    // Get the current page filename
+    const currentPath = window.location.pathname;
+    const pageName = currentPath.split('/').pop();
+    
+    // Check if we're on a specific chore page using a more robust method
+    if (pageName === 'dishwasher.html' || currentPath.endsWith('/dishwasher.html')) {
         determineNextPerson('mašina');
         displayChoreHistory('mašina');
-    } else if (window.location.pathname.includes('grocery.html')) {
+    } else if (pageName === 'grocery.html' || currentPath.endsWith('/grocery.html')) {
         determineNextPerson('granap');
         displayChoreHistory('granap');
     } else {
-        // We're on the home page
+        // We're on the home page or index.html
         displayEntries();
     }
 };
