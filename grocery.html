@@ -1,43 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Granap</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Granap</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <button class="back-button" onclick="goToHome()">
-        ←
-    </button>
-    <div class="container">
-        <h1>Granap</h1>
-        
-        <div class="next-person-container">
-            <h2>Sljedeći po redu:</h2>
-            <div class="next-person" id="nextPerson">Učitavanje...</div>
-            <div class="counts">
-                <div class="count">Tarik: <span id="tarikCount">0</span> ukupno</div>
-                <div class="count">Kemo: <span id="kemoCount">0</span> ukupno</div>
-            </div>
-        </div>
-        
-        <div class="buttons-container">
-            <button class="person-button tarik" onclick="confirmChore('Tarik', 'granap')">
-                Tarik
-            </button>
-            <button class="person-button kemo" onclick="confirmChore('Kemo', 'granap')">
-                Kemo
-            </button>
-        </div>
-
-        <div class="history-section">
-            <h2>Historija</h2>
-            <div id="choreHistory"></div>
-        </div>
+  <button class="back-button" onclick="goToHome()">←</button>
+  <div class="container">
+    <h1>Granap</h1>
+    
+    <div class="next-person-container">
+      <h2>Sljedeći po redu:</h2>
+      <div class="next-person" id="nextPerson">Učitavanje...</div>
+      <div class="counts">
+        <div class="count">Tarik: <span id="tarikCount">0</span> ukupno</div>
+        <div class="count">Kemo: <span id="kemoCount">0</span> ukupno</div>
+      </div>
     </div>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="script.js"></script>
+    
+    <div class="buttons-container">
+      <button class="person-button tarik" onclick="confirmChore('Tarik', 'granap')">Tarik</button>
+      <button class="person-button kemo" onclick="confirmChore('Kemo', 'granap')">Kemo</button>
+    </div>
+
+    <div class="history-section">
+      <h2>Historija</h2>
+      <div id="choreHistory"></div>
+    </div>
+  </div>
+  
+  <!-- Firebase SDK scripts -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  
+  <!-- Inline script with Firebase initialization and page logic -->
+  <script>
+    // Firebase configuration (using only databaseURL here)
+    const firebaseConfig = {
+      databaseURL: "https://masina-1b9c4-default-rtdb.europe-west1.firebasedatabase.app/"
+    };
+
+    let database;
+
+    // Single onload handler for initialization and page-specific logic
+    window.onload = function() {
+      console.log('Page loaded, pathname:', window.location.pathname);
+
+      // Initialize Firebase if not already initialized
+      if (!firebase.apps.length) {
+        try {
+          firebase.initializeApp(firebaseConfig);
+          console.log("Firebase initialized successfully");
+        } catch (error) {
+          console.error("Error initializing Firebase:", error);
+          return;
+        }
+      }
+      database = firebase.database();
+
+      // For grocery.html, we load data for the "granap" chore
+      console.log('Grocery page detected. Loading "granap" data.');
+      determineNextPerson('granap');
+      displayChoreHistory('granap');
+    };
+
+    // Navigate back to home page
+    function goToHome() {
+      window.location.href = 'index.html';
+    }
+
+    // Confirm a chore and push the entry to Firebase
+    function confirmChore(name, chore) {
+      if (confirm(`${name}, jel lažeš da si uradio ${chore}?`)) {
+        const entry = {
+          name: name,
+          chore: chore,
+          date: new Date().toLocaleDateString(),
+          timestamp: Date.now()
+        };
+        database.ref('entries').push(entry);
+        // Refresh the page after a short delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      }
+    }
+
+    // Determine the next person based on chore entries
+    function determineNextPerson(chore) {
+      const nextPersonElement = document.getElementById('nextPerson');
+      const tarikCountElement = document.getElementById('tarikCount');
+      const kemoCountElement = document.getElementById('kemoCount');
+
+      if (!nextPersonElement) {
+        console.error('Next person element not found');
+        return;
+      }
+
+      console.log(`Fetching entries for chore: ${chore}`);
+      database.ref('entries')
+        .orderByChild('chore')
+        .equalTo(chore)
+        .on('value', (snapshot) => {
+          console.log('Received snapshot:', snapshot.val());
+          const entries = [];
+          snapshot.forEach((childSnapshot) => {
+            entries.push(childSnapshot.val());
+          });
+
+          // Sort entries by timestamp (newest first)
+          entries.sort((a, b) => b.timestamp - a.timestamp);
+
+          if (entries.length === 0) {
+            nextPersonElement.textContent = "Tarik";
+            nextPersonElement.className = "next-person tarik";
+            if (tarikCountElement) tarikCountElement.textContent = 0;
+            if (kemoCountElement) kemoCountElement.textContent = 0;
+            return;
+          }
+
+          // Calculate total counts for each person
+          let tarikTotal = 0;
+          let kemoTotal = 0;
+          entries.forEach(entry => {
+            if (entry.name === 'Tarik') tarikTotal++;
+            else kemoTotal++;
+          });
+
+          if (tarikCountElement) tarikCountElement.textContent = tarikTotal;
+          if (kemoCountElement) kemoCountElement.textContent = kemoTotal;
+
+          // Determine who's next based on the counts and last entry
+          let nextPerson;
+          if (tarikTotal > kemoTotal) {
+            nextPerson = 'Kemo';
+          } else if (kemoTotal > tarikTotal) {
+            nextPerson = 'Tarik';
+          } else {
+            // If counts are equal, alternate based on the last entry
+            nextPerson = entries[0].name === 'Tarik' ? 'Kemo' : 'Tarik';
+          }
+          nextPersonElement.textContent = nextPerson;
+          nextPersonElement.className = `next-person ${nextPerson.toLowerCase()}`;
+        }, (error) => {
+          console.error(`Error fetching entries for ${chore}:`, error);
+          nextPersonElement.textContent = "Error loading data";
+          if (tarikCountElement) tarikCountElement.textContent = '-';
+          if (kemoCountElement) kemoCountElement.textContent = '-';
+        });
+    }
+
+    // Display the history of entries for the given chore
+    function displayChoreHistory(chore) {
+      const historyList = document.getElementById('choreHistory');
+      if (!historyList) {
+        console.error('History list element not found');
+        return;
+      }
+
+      historyList.innerHTML = '<div class="loading">Loading...</div>';
+      database.ref('entries')
+        .orderByChild('chore')
+        .equalTo(chore)
+        .on('value', (snapshot) => {
+          const entries = [];
+          snapshot.forEach((childSnapshot) => {
+            entries.push(childSnapshot.val());
+          });
+
+          // Sort entries by timestamp (newest first)
+          entries.sort((a, b) => b.timestamp - a.timestamp);
+
+          if (entries.length === 0) {
+            historyList.innerHTML = '<div class="no-entries">No entries yet</div>';
+            return;
+          }
+          historyList.innerHTML = entries.map(entry => `
+            <div class="entry">
+              <span class="${entry.name.toLowerCase()}">${entry.name}</span>
+              <span>${entry.date}</span>
+            </div>
+          `).join('');
+        }, (error) => {
+          console.error("Error fetching chore history:", error);
+          historyList.innerHTML = '<div class="no-entries">Error loading history</div>';
+        });
+    }
+  </script>
 </body>
 </html>
