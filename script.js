@@ -4,13 +4,38 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase with error handling
-try {
-    firebase.initializeApp(firebaseConfig);
-    console.log("Firebase initialized successfully");
-} catch (error) {
-    console.error("Error initializing Firebase:", error);
+let database;
+function initializeFirebase() {
+    if (!firebase.apps.length) {
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log("Firebase initialized successfully");
+        } catch (error) {
+            console.error("Error initializing Firebase:", error);
+            return;
+        }
+    }
+    database = firebase.database();
 }
-const database = firebase.database();
+
+// Make sure Firebase is initialized before running any database operations
+document.addEventListener('DOMContentLoaded', () => {
+    initializeFirebase();
+    // Rest of your window.onload code here
+    const currentPath = window.location.pathname;
+    const pageName = currentPath.split('/').pop();
+    
+    if (pageName === 'dishwasher.html' || pageName.includes('dishwasher') || currentPath.endsWith('/dishwasher.html')) {
+        determineNextPerson('mašina');
+        displayChoreHistory('mašina');
+    } else if (pageName === 'grocery.html' || pageName.includes('grocery') || currentPath.endsWith('/grocery.html')) {
+        determineNextPerson('granap');
+        displayChoreHistory('granap');
+    } else {
+        displayEntries();
+    }
+});
+
 let selectedChore = '';
 
 // Navigation function
