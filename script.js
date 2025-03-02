@@ -11,7 +11,6 @@ window.onload = function() {
     console.log('Page loaded, pathname:', window.location.pathname);
     
     // Initialize Firebase first
-    // Ensure Firebase is initialized before any database operations
     if (!firebase.apps.length) {
         try {
             firebase.initializeApp(firebaseConfig);
@@ -175,7 +174,6 @@ function displayEntries() {
     historyList.innerHTML = '<div class="loading">Loading...</div>';
     console.log('Fetching recent entries for home page');
     
-    // Changed from limitToLast(10) to limitToLast(5)
     database.ref('entries').orderByChild('timestamp').limitToLast(5).on('value', (snapshot) => {
         console.log('Received home page snapshot:', snapshot.val());
         const entries = [];
@@ -184,6 +182,7 @@ function displayEntries() {
         });
         
         if (entries.length === 0) {
+            console.log('No entries found');
             historyList.innerHTML = '<div class="no-entries">No entries yet</div>';
             return;
         }
