@@ -162,5 +162,8 @@ function displayChoreHistory(chore) {
                 <span>${entry.date}</span>
             </div>
         `).join('');
+    }, (error) => {
+        console.error("Error fetching chore history:", error);
+        historyList.innerHTML = '<div class="no-entries">Error loading history</div>';
     });
 }
